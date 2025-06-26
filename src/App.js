@@ -1,24 +1,27 @@
-import logo from './logo.svg';
-import './App.css';
+import logo from "./logo.svg";
+import { Route, Routes } from "react-router-dom";
+import MainPage from "./pages/MainPage";
+import EditPage from "./pages/EditPage";
+import { AllDataProvider } from "./context/Context";
+import SendPage from "./pages/SendPage";
+import EditTemplatePage from "./pages/EditTemplatePage";
+import "./App.css";
+
+import LoginPage from "./pages/LoginPage";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AllDataProvider>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/home" element={<MainPage />} />
+          <Route path="/editpage" element={<EditPage />} />
+          <Route path="/sendpage/:IdParams" element={<SendPage />} />
+          <Route path="/edittem/:id" element={<EditTemplatePage />} />
+        </Routes>
+      </div>
+    </AllDataProvider>
   );
 }
 
