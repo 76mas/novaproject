@@ -7,13 +7,13 @@
           gap: 24px;
           width: 100%;
         }
-.emptystat {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 18px;
-}
+        .emptystat {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          font-size: 18px;
+        }
 
 
         /* .templates-grid:empty::before {
@@ -30,7 +30,7 @@ background: linear-gradient(120deg, #f8f9fa, #e9ecef);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.126);
   transition: 0.3s all;
   cursor: pointer;
   opacity: 0;

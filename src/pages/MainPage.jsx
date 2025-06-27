@@ -162,7 +162,7 @@ const handleEdit = (template) => {
         <div className="header-content">
           <div className="logo-section">
             <div className="brand-name"  style={{color:"#3730a3"}} >NOVA DEVSPRINT</div>
-            <div className="project-name"  >Document Generator</div>
+            <div className="project-name"  style={{color:"#3730a3"}} >Document Generator</div>
           </div>
 
           <div className="header-actions">   

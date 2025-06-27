@@ -1,7 +1,7 @@
 /* تصميم متطور لصفحة التحرير */
 
 body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #dedede  0%, #f4efef 100%);
   min-height: 100vh;
   width: 100%;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -24,13 +24,13 @@ body {
 
 .workspace h1 {
     display: block;
-  color: white;
+  color: rgb(0, 0, 0);
   text-align: center;
   font-size: 2.5rem;
   margin-bottom: 30px;
   text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   font-weight: 700;
-  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  background: linear-gradient(135deg, #1e0430, #000000);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   /* animation: fadeInDown 0.8s ease-out; */
@@ -246,11 +246,11 @@ canvas:hover,
 
 /* تحسينات للنصوص */
 p {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.9);
   font-size: 16px;
   line-height: 1.6;
   text-align: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(255, 248, 248);
   padding: 15px 25px;
   border-radius: 15px;
   backdrop-filter: blur(10px);
