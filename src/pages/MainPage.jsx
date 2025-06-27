@@ -1,4 +1,4 @@
-import { Trash2, FileText, Edit, MoreHorizontal, Plus, User,Brain, Download  } from "lucide-react";
+import { Trash2, FileText, Edit, MoreHorizontal, Plus, User,Brain, Download ,SearchCheck  } from "lucide-react";
 import { pdfToImage } from "../services/pdfService";
 import { useState, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ export default function MainPage() {
 
   const fileInputRef = useRef(null);
    const fileInputRefExle = useRef(null);
+   const fileInputRefAuto = useRef(null);
 
   // جلب القوالب من localStorage في البداية فقط
   const [localTemplates, setLocalTemplates] = useState(() => {
@@ -26,6 +27,10 @@ export default function MainPage() {
 
   const handleCreateNew = () => {
     fileInputRef.current.click();
+  };
+
+   const handleAutoDetectPage = () => {
+    fileInputRefAuto.current.click();
   };
 
   const handleCreateExleFile=()=>{
@@ -63,6 +68,41 @@ const handleFileExle = async (event) => {
     alert("فشل الرفع");
   }
 };
+
+
+const handleFileAuto = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const imageUrl = URL.createObjectURL(file); // ← هذا رابط الصورة
+
+  const formData = new FormData();
+  formData.append("forAutoDetect", file);
+
+  try {
+    const response = await axios.post("http://localhost:5000/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    const fields = response.data; // ← الباك يرجع فقط المصفوفة
+
+    // خزن الصورة والحقول
+    localStorage.setItem("auto_detect_img", imageUrl);
+    localStorage.setItem("auto_detect_fields", JSON.stringify(fields));
+
+    navigate("/autodetect");
+  } catch (error) {
+    console.error("فشل التحليل:", error);
+    alert("فشل التحليل");
+  }
+};
+
+
+
+
+
+
+
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
@@ -136,6 +176,10 @@ const handleEdit = (template) => {
               Create New
             </button>
 
+            <button className="create-btn" onClick={handleAutoDetectPage}>
+              <SearchCheck size={16} />
+             Auto Detect Boxs
+            </button>
 
           
             <input
@@ -149,6 +193,12 @@ const handleEdit = (template) => {
               ref={fileInputRefExle}
               style={{ display: "none" }}
               onChange={handleFileExle}
+            />
+                 <input
+              type="file"
+              ref={fileInputRefAuto}
+              style={{ display: "none" }}
+              onChange={handleFileAuto}
             />
 
             <div className="user-menu-container">

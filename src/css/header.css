@@ -78,6 +78,15 @@ transition: all 0.2s;
 /* background-color: #10b981 !important; */
 }
 
+.create-btn:nth-child(3){
+  background: linear-gradient(135deg, #3bffd5  0%, #10b9ae 100%);
+/* background-color: #10b981 !important; */
+}
+.create-btn:nth-child(3):hover{
+  background: linear-gradient(135deg, #3bffd5a4  0%, #10b9aeb5 100%);
+/* background-color: #10b981 !important; */
+}
+
 .create-btn:hover {
 transform: translateX(3px);
 box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);

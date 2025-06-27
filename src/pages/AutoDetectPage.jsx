@@ -1,40 +1,30 @@
-import React, { useContext,useEffect, useRef, useState } from "react";
-import { Stage, Layer, Image as KImage, Rect, Transformer } from "react-konva";
-import { AllData } from "../context/Context";
+import React, { useState, useRef, useEffect } from "react";
+import { Stage, Layer, Rect, Image as KImage, Transformer } from "react-konva";
 import useImage from "use-image";
-import { useParams } from "react-router-dom";
-import FieldSidebar from "./FieldSidebar";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "../css/edit.css";
 
-export default function EditTemplatePage() {
-  const {foucs}=useContext(AllData)
-  const { id } = useParams();
-  const navigate=useNavigate();
-  const [template, setTemplate] = useState(null);
-  const [fields, setFields] = useState([]);
+export default function AutoDetectPage() {
   const [imgSrc, setImgSrc] = useState(null);
+  const [fields, setFields] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const stageRef = useRef();
   const trRef = useRef();
-
-  useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("editingTemplate"));
-    if (saved && saved.id === id) {
-      setTemplate(saved);
-      setFields(saved.pages[0].fields);
-      setImgSrc(saved.image);
-    }
-  }, [id]);
+  const navigate = useNavigate();
 
   const [img] = useImage(imgSrc);
 
+  // تحميل البيانات من localStorage
+  useEffect(() => {
+    const img = localStorage.getItem("auto_detect_img");
+    const fieldsData = JSON.parse(localStorage.getItem("auto_detect_fields") || "[]");
 
+    if (img) setImgSrc(img);
+    if (fieldsData.length) setFields(fieldsData);
+  }, []);
 
-  console.log(template,"fffff")
-  
-
+  // تحديد الـ Transformer عند تحديد الحقل
   useEffect(() => {
     if (selectedId && trRef.current && stageRef.current) {
       const selectedNode = stageRef.current.findOne(`#${selectedId}`);
@@ -48,12 +38,7 @@ export default function EditTemplatePage() {
     }
   }, [selectedId, fields]);
 
-  const updateField = (updatedField) => {
-    setFields((prev) =>
-      prev.map((f) => (f.id === updatedField.id ? updatedField : f))
-    );
-  };
-
+  // إضافة حقل جديد يدويًا
   const onDblClick = (e) => {
     const pos = e.target.getStage().getPointerPosition();
     const newField = {
@@ -70,107 +55,99 @@ export default function EditTemplatePage() {
     setFields([...fields, newField]);
   };
 
-  const selectedField = fields.find((f) => f.id === selectedId);
+  // تحديث بيانات الحقل
+  const updateField = (updatedField) => {
+    setFields((prev) =>
+      prev.map((f) => (f.id === updatedField.id ? updatedField : f))
+    );
+  };
 
-
-  
+  // حذف الحقل المحدد
   const deleteSelectedField = () => {
-    console.log("foucs",foucs);
-    if (!selectedId && foucs) return;
-  if (foucs) return;
-  
-  
+    if (!selectedId) return;
     setFields((prev) => prev.filter((f) => f.id !== selectedId));
     setSelectedId(null);
-  
-    // إفراغ الـ Transformer بشكل صريح
     if (trRef.current) {
       trRef.current.nodes([]);
       trRef.current.getLayer().batchDraw();
     }
   };
-  
+
+  // حذف الحقل عند الضغط على Delete
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if ((e.key === "Delete") && selectedId) {
+      if (e.key === "Delete" && selectedId) {
         deleteSelectedField();
       }
     };
-  
     window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedId]);
+
+  // حفظ القالب وإرساله للباك إند
+  const handleSave = async () => {
+    if (!fields.length) {
+      alert("لا توجد حقول للحفظ!");
+      return;
+    }
+
+    const name = prompt("اكتب اسم القالب:");
+    if (!name) return;
+
+    const templateId = crypto.randomUUID();
+
+    const template = {
+      id: templateId,
+      name,
+      img: imgSrc,
+      pages: [
+        {
+          fields,
+          width: img ? img.width : 0,
+          height: img ? img.height : 0,
+        },
+      ],
     };
-  }, [selectedId, fields]); 
 
+    const prevTemplates = JSON.parse(localStorage.getItem("templates") || "[]");
+    const updatedTemplates = [...prevTemplates, template];
+    localStorage.setItem("templates", JSON.stringify(updatedTemplates));
 
-const handleSave = async () => {
-  if (!fields.length) {
-    alert("لا توجد حقول للحفظ!");
-    return;
-  }
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("fields", JSON.stringify(fields));
 
-  const name = template.name; // نستخدم الاسم الموجود
-  const templateId = template.id; // نستخدم نفس ID
+    try {
+      await axios.post("http://localhost:5000/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-  const updatedTemplate = {
-    ...template,
-    name,
-    pages: [
-      {
-        fields,
-        width: img ? img.width : 0,
-        height: img ? img.height : 0,
-      },
-    ],
+      alert("✅ تم رفع القالب بنجاح");
+      navigate(`/sendpage/${templateId}`);
+    } catch (error) {
+      console.error("❌ فشل الرفع:", error);
+      alert("فشل رفع القالب");
+    }
   };
-
-  // تحديث القالب داخل localStorage
-  const prevTemplates = JSON.parse(localStorage.getItem("templates") || "[]");
-  const updatedTemplates = prevTemplates.map((t) =>
-    t.id === templateId ? updatedTemplate : t
-  );
-  localStorage.setItem("templates", JSON.stringify(updatedTemplates));
-
-  // رفع التعديلات إلى الباك إند
-  const formData = new FormData();
-  formData.append("id", templateId);
-  formData.append("name", name);
-  formData.append("fields", JSON.stringify(fields));
-
-  try {
-    await axios.post("http://localhost:5000/upload", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    alert("✅ تم تحديث القالب ورفع البيانات بنجاح");
-    navigate(`/sendpage/${templateId}`);
-  } catch (error) {
-    console.error("❌ فشل الرفع", error);
-    alert("فشل الرفع");
-  }
-};
-
 
   return (
     <div className="workspace">
-      <h1>تعديل القالب: {template?.name}</h1>
+      <h1>تحليل القالب آليًا</h1>
       <p style={{ marginTop: 10 }}>
         اضغط مرتين على الخلفية لإضافة حقل جديد، وامسك المربع لتحريكه أو تغيير حجمه.
       </p>
-      <div className="container-edit">
-        <div className='box-edit'>
-          <FieldSidebar field={selectedField} onUpdate={updateField} />
 
-              <button className="save-button" onClick={handleSave}>
-                <span>💾</span>
-                <span >حفظ وارسال القالب</span>
-        </button> 
+      <div className="container-edit">
+        <div className="box-edit">
+          <button className="save-button" onClick={handleSave}>
+            <span>💾</span>
+            <span>حفظ وارسال القالب</span>
+          </button>
         </div>
 
         {img && (
           <Stage
-             width={img.width}
+            width={img.width}
             height={img.height}
             ref={stageRef}
             onDblClick={onDblClick}

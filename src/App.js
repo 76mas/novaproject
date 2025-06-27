@@ -5,6 +5,7 @@ import EditPage from "./pages/EditPage";
 import { AllDataProvider } from "./context/Context";
 import SendPage from "./pages/SendPage";
 import EditTemplatePage from "./pages/EditTemplatePage";
+import AutoDetectPage from "./pages/AutoDetectPage";
 import "./App.css";
 
 import LoginPage from "./pages/LoginPage";
@@ -19,6 +20,7 @@ function App() {
           <Route path="/editpage" element={<EditPage />} />
           <Route path="/sendpage/:IdParams" element={<SendPage />} />
           <Route path="/edittem/:id" element={<EditTemplatePage />} />
+          <Route path="/autodetect" element={<AutoDetectPage />} />
         </Routes>
       </div>
     </AllDataProvider>
