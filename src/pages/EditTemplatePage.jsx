@@ -9,6 +9,7 @@ import axios from "axios";
 import "../css/edit.css";
 
 export default function EditTemplatePage() {
+  const [loading, setLoading] = useState(false);
   const {foucs}=useContext(AllData)
   const { id } = useParams();
   const navigate=useNavigate();
@@ -131,24 +132,8 @@ const handleSave = async () => {
     t.id === templateId ? updatedTemplate : t
   );
   localStorage.setItem("templates", JSON.stringify(updatedTemplates));
-
-  // رفع التعديلات إلى الباك إند
-  const formData = new FormData();
-  formData.append("id", templateId);
-  formData.append("name", name);
-  formData.append("fields", JSON.stringify(fields));
-
-  try {
-    await axios.post("http://localhost:5000/upload", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    alert("✅ تم تحديث القالب ورفع البيانات بنجاح");
-    navigate(`/sendpage/${templateId}`);
-  } catch (error) {
-    console.error("❌ فشل الرفع", error);
-    alert("فشل الرفع");
-  }
+  // alert("✅ تم تحديث القالب ورفع البيانات بنجاح");
+  navigate(`/sendpage/${templateId}`);
 };
 
 
@@ -159,6 +144,13 @@ const handleSave = async () => {
         اضغط مرتين على الخلفية لإضافة حقل جديد، وامسك المربع لتحريكه أو تغيير حجمه.
       </p>
       <div className="container-edit">
+        {loading && (
+        <div className="spinner-overlay">
+          <div className="animated-spinner"></div>
+          <p className="loading-text">جاري التحميل...</p>
+        </div>
+      )}
+
         <div className='box-edit'>
           <FieldSidebar field={selectedField} onUpdate={updateField} />
 

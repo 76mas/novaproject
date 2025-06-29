@@ -118,7 +118,7 @@ export default function AutoDetectPage() {
     formData.append("fields", JSON.stringify(fields));
 
     try {
-      await axios.post("http://localhost:5000/upload", formData, {
+      await axios.post("http://localhost:3000/api/auto_detect", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

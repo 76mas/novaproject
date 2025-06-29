@@ -9,8 +9,12 @@ import "../css/carddesign.css";
 import axios from "axios";
 
 export default function MainPage() {
+  
+const [loading, setLoading] = useState(false);
+  
   const navigate = useNavigate();
   const { pdfFile, setPdfFile, image, setImage } = useContext(AllData);
+  const { dimations, setDimations } = useContext(AllData);
 
 
   const fileInputRef = useRef(null);
@@ -39,36 +43,54 @@ export default function MainPage() {
 
 
 
-  // لملف ال exle 
 const handleFileExle = async (event) => {
   const file = event.target.files[0];
   if (!file) return;
+  setLoading(true);
 
   const formData = new FormData();
   formData.append("forExle", file);
 
   try {
-    const response = await axios.post("http://localhost:5000/upload", formData, {
+    const response = await axios.post("http://localhost:3002/api/image_to_excel", formData, {
       headers: { "Content-Type": "multipart/form-data" },
-      responseType: "blob", // مهم حتى نستلم الملف كـ Blob
+      responseType: "blob", // Important to receive file as Blob
     });
 
-    // إنشاء رابط تنزيل للملف
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "الملف.xlsx"); // اسم الملف اللي ينزل
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    alert("✅ تم رفع الملف وتحميل النتيجة");
+    // Check if response is actually a blob (file)
+    if (response.data instanceof Blob) {
+      // Create download link for the file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "form_data.xlsx"); // Use safe filename
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url); // Clean up
+  setLoading(false);
+      alert("✅ تم رفع الملف وتحميل النتيجة");
+    } else {
+      console.error("Response is not a file blob:", response.data);
+      alert("❌ خطأ في تنسيق الاستجابة");
+    }
   } catch (error) {
     console.error("❌ فشل الرفع", error);
-    alert("فشل الرفع");
+    
+    // Try to extract error message from response
+    if (error.response && error.response.data) {
+      try {
+        const errorText = await error.response.data.text();
+        const errorObj = JSON.parse(errorText);
+        alert(`فشل الرفع: ${errorObj.error || errorObj.details || 'خطأ غير معروف'}`);
+      } catch (parseError) {
+        alert("فشل الرفع");
+      }
+    } else {
+      alert("فشل الرفع");
+    }
   }
 };
-
 
 const handleFileAuto = async (event) => {
   const file = event.target.files[0];
@@ -110,7 +132,7 @@ const handleFileAuto = async (event) => {
 
     setPdfFile(file);
     const arrayBuffer = await file.arrayBuffer();
-    const img = await pdfToImage(arrayBuffer);
+    const img = await pdfToImage(arrayBuffer,setDimations);
     setImage(img);
 
     navigate("/editpage");
@@ -168,7 +190,7 @@ const handleEdit = (template) => {
           <div className="header-actions">   
              <button className="create-btn" onClick={handleCreateExleFile}>
               <Brain  size={16} />
-              make majec
+              EXCEL-NATOR
             </button>
 
             <button className="create-btn" onClick={handleCreateNew}>
@@ -176,10 +198,6 @@ const handleEdit = (template) => {
               Create New
             </button>
 
-            <button className="create-btn" onClick={handleAutoDetectPage}>
-              <SearchCheck size={16} />
-             Auto Detect Boxs
-            </button>
 
           
             <input
@@ -194,12 +212,7 @@ const handleEdit = (template) => {
               style={{ display: "none" }}
               onChange={handleFileExle}
             />
-                 <input
-              type="file"
-              ref={fileInputRefAuto}
-              style={{ display: "none" }}
-              onChange={handleFileAuto}
-            />
+           
 
             <div className="user-menu-container">
               <button className="user-btn">
@@ -211,6 +224,13 @@ const handleEdit = (template) => {
       </header>
 
       <div className="continer">
+
+      {loading && (
+        <div className="spinner-overlay">
+          <div className="animated-spinner"></div>
+          <p className="loading-text">جاري التحميل...</p>
+        </div>
+      )}
         <div className="templates-grid">
           {localTemplates.length === 0 ? (
             <p className="emptystat" style={{ padding: "20px", textAlign: "center" }}>

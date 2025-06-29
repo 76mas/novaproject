@@ -1,10 +1,12 @@
 import "../css/send.css"
-import { useState } from "react";
+import { useState,useContext } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { AllData } from "../context/Context";
 
 
 export default function SendPage() {
+    const { pdfFile , dimations} = useContext(AllData); // صورة الـ PDF من Context
   
     const {IdParams}=useParams();
 
@@ -21,30 +23,53 @@ export default function SendPage() {
     // console.log(fields)
 
   // تحديث قيمة حقل
-  const handleChange = (id, newValue) => {
-    setFields((prevFields) =>
-      prevFields.map((field) =>
-        field.id === id ? { ...field, value: newValue } : field
-      )
-    );
-  };
+const handleChange = (fieldId, newValue) => {
+  setFields(prevFields =>
+    prevFields.map(field => {
+      if (field.id !== IdParams) return field;
+
+      return {
+        ...field,
+        pages: field.pages.map((page, pageIndex) => ({
+          ...page,
+          fields: page.fields.map(f =>
+            f.id === fieldId ? { ...f, value: newValue } : f
+          )
+        }))
+      };
+    })
+  );
+};
+
 
 const handelFetch = async () => {
-  console.log(fildInfo , "new arry")
+  const updatedInfo = fields.find(field => field.id === IdParams);
+
+  const formData = new FormData();
+  formData.append("valueofboxs", JSON.stringify(updatedInfo));
+  formData.append("pdfFile", pdfFile);
+  formData.append("viewportdimations", JSON.stringify(dimations));
   try {
-    const response = await axios.post("http://localhost:3000/api/submit", {
-      valueofboxs: fildInfo,
-    }, {
+    const response = await axios.post("http://localhost:3002/api/generate-pdf", formData, {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
+      responseType: "blob", // <-- Important!
     });
 
-    console.log("تم الإرسال بنجاح:", response.data);
-    // ممكن تخلي تنبيه أو تنقله لصفحة ثانية حسب الحاجة
+    // Create a download link for the PDF
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "stamped-file.pdf"); // Set the file name
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    console.log("✅ تم الإرسال بنجاح");
   } catch (error) {
-    console.error("فشل الإرسال:", error);
-    // ممكن تعرض رسالة خطأ للمستخدم
+    console.error("❌ فشل الإرسال:", error);
   }
 };
 
@@ -80,4 +105,3 @@ const handelFetch = async () => {
     </div>
   );
 }
-
